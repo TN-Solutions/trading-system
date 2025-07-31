@@ -1,0 +1,6 @@
+- This project uses Prettier for code formatting and ESLint for linting.
+- Prettier is configured to format files on pre-commit using Husky.
+- The code style is based on the default configurations of Prettier and ESLint for Next.js projects.
+- Tailwind CSS is used for styling, so utility-first CSS classes are preferred.
+- Shadcn-ui is used for components, so the component structure should follow its conventions.
+- TypeScript is used, so strong typing is expected.

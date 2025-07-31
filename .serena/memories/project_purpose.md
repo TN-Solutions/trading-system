@@ -1,0 +1,1 @@
+This project is a starter template for a Next.js admin dashboard. It includes features like authentication, data tables, a Kanban board, and a profile page.

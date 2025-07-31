@@ -1,0 +1,16 @@
+- Framework: Next.js 15
+- Language: TypeScript
+- Auth: Clerk
+- Error Tracking: Sentry
+- Styling: Tailwind CSS v4
+- Components: Shadcn-ui
+- Schema Validations: Zod
+- State Management: Zustand
+- Search params state manager: Nuqs
+- Tables: Tanstack Data Tables
+- Forms: React Hook Form
+- Command+k interface: kbar
+- Linting: ESLint
+- Pre-commit Hooks: Husky
+- Formatting: Prettier
+- Package Manager: pnpm
