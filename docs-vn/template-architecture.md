@@ -95,7 +95,7 @@ There is currently **no database connected**. Data structures are defined as Typ
 
 ### API Specifications
 
-- **Current State**: The application uses a **mock API** located in `frontend/constants/mock-api.ts`. This simulates fetching data for features like the product list.
+- **Current State**: The application uses a **mock API** located in `frontend/src/constants/mock-api.ts`. This simulates fetching data for features like the product list.
 - **Future Architecture**: A dedicated **API abstraction layer** will be created. This layer will use **Axios** to communicate with the future `backend` service. All data fetching logic within components will call this abstraction layer instead of the mock API.
 
 ## Technical Debt and Known Issues
