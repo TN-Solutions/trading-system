@@ -2,18 +2,18 @@
 
 # dependencies
 **/node_modules
-/.pnp
-.pnp.js
+**/.pnp
+**/.pnp.js
 
 # testing
-/coverage
+**/coverage
 
 # next.js
 **/.next/
-/out/
+**/.out/
 
 # production
-/build
+**/.build
 
 # misc
 .DS_Store
@@ -46,7 +46,3 @@ next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
-.bmad-core/
-.cursor/
-.claude/
-.gemini/
