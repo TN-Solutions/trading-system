@@ -6,11 +6,10 @@ import { FileText, TrendingUp, Target, Calendar } from 'lucide-react';
 import { CellAction } from './cell-action';
 
 interface ReportColumnProps {
-  onEdit?: (report: ReportWithDetails) => void;
   onDelete?: (reportId: string) => void;
 }
 
-export const createReportColumns = ({ onEdit, onDelete }: ReportColumnProps): ColumnDef<ReportWithDetails>[] => [
+export const createReportColumns = ({ onDelete }: ReportColumnProps): ColumnDef<ReportWithDetails>[] => [
   {
     id: 'title',
     accessorKey: 'title',
@@ -138,7 +137,6 @@ export const createReportColumns = ({ onEdit, onDelete }: ReportColumnProps): Co
       return (
         <CellAction 
           data={report} 
-          onEdit={onEdit}
           onDelete={onDelete}
         />
       );

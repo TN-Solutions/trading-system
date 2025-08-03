@@ -6,6 +6,7 @@ import { useDataTable } from '@/hooks/use-data-table';
 import { ReportWithDetails } from '@/types/report';
 import { ColumnDef } from '@tanstack/react-table';
 import { parseAsInteger, useQueryState } from 'nuqs';
+import { useRouter } from 'next/navigation';
 
 interface ReportTableParams<TData, TValue> {
   data: TData[];
@@ -22,6 +23,7 @@ export function ReportTable<TData, TValue>({
   onEdit,
   onDelete
 }: ReportTableParams<TData, TValue>) {
+  const router = useRouter();
   const [pageSize] = useQueryState('perPage', parseAsInteger.withDefault(10));
 
   const pageCount = Math.ceil(totalItems / pageSize);
@@ -34,8 +36,13 @@ export function ReportTable<TData, TValue>({
     debounceMs: 500
   });
 
+  const handleRowClick = (row: any) => {
+    // Navigate to the report editor page
+    router.push(`/dashboard/reports/${row.original.id}`);
+  };
+
   return (
-    <DataTable table={table}>
+    <DataTable table={table} onRowClick={handleRowClick}>
       <DataTableToolbar table={table} />
     </DataTable>
   );

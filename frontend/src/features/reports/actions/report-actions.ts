@@ -1,13 +1,14 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { Report, ReportWithDetails } from '@/types/report';
+import { Report, ReportWithDetails, ReportWithBlocks } from '@/types/report';
 import { revalidatePath } from 'next/cache';
 
 export type ReportCreateData = {
   title: string;
   asset_id: string;
   methodology_id: string;
+  main_timeframe: string;
   status: 'draft' | 'published';
 };
 
@@ -65,6 +66,9 @@ export async function createReport(data: ReportCreateData): Promise<{ success: b
         title: data.title,
         asset_id: data.asset_id,
         methodology_id: data.methodology_id,
+        main_timeframe: data.main_timeframe,
+        main_timeframe_bias: 'neutral',
+        main_timeframe_notes: '',
         status: data.status
       }])
       .select()
@@ -235,6 +239,7 @@ export async function updateReport(id: string, data: ReportUpdateData): Promise<
         title: data.title,
         asset_id: data.asset_id,
         methodology_id: data.methodology_id,
+        main_timeframe: data.main_timeframe,
         status: data.status
       })
       .eq('id', id)
@@ -310,6 +315,80 @@ export async function deleteReport(id: string): Promise<{ success: boolean; erro
     return { success: true };
   } catch (error) {
     console.error('Unexpected error deleting report:', error);
+    return { 
+      success: false, 
+      error: 'An unexpected error occurred. Please try again.' 
+    };
+  }
+}
+
+// Get a single report by ID with analysis blocks for the editor
+export async function getReportWithBlocks(id: string): Promise<{ success: boolean; report?: ReportWithBlocks; error?: string }> {
+  try {
+    const supabase = await createClient();
+    
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return { 
+        success: false, 
+        error: 'You must be authenticated to view reports' 
+      };
+    }
+
+    // Get report with asset and methodology details
+    const { data: report, error: reportError } = await supabase
+      .from('reports')
+      .select(`
+        *,
+        asset:assets(id, symbol, name),
+        methodology:methodologies(id, name)
+      `)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (reportError) {
+      console.error('Supabase error fetching report:', reportError);
+      
+      if (reportError.code === 'PGRST116') {
+        return { 
+          success: false, 
+          error: 'Report not found' 
+        };
+      }
+      
+      return { 
+        success: false, 
+        error: 'Failed to fetch report. Please try again.' 
+      };
+    }
+
+    // Get analysis blocks for this report
+    const { data: blocks, error: blocksError } = await supabase
+      .from('analysis_blocks')
+      .select('*')
+      .eq('report_id', id)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    if (blocksError) {
+      console.error('Supabase error fetching analysis blocks:', blocksError);
+      return { 
+        success: false, 
+        error: 'Failed to fetch analysis blocks. Please try again.' 
+      };
+    }
+
+    const reportWithBlocks: ReportWithBlocks = {
+      ...report,
+      analysis_blocks: blocks || []
+    };
+
+    return { success: true, report: reportWithBlocks };
+  } catch (error) {
+    console.error('Unexpected error fetching report with blocks:', error);
     return { 
       success: false, 
       error: 'An unexpected error occurred. Please try again.' 

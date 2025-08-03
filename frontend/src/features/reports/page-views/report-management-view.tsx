@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { ReportForm, ReportFormData } from '../components/report-form';
 import { ReportTable } from '../components/report-table';
 import { createReportColumns } from '../components/report-table/columns';
-import { createReport, deleteReport, getReports, updateReport, ReportCreateData, ReportUpdateData } from '../actions/report-actions';
+import { createReport, deleteReport, getReports, ReportCreateData } from '../actions/report-actions';
 import { getAssets } from '@/features/assets/actions/asset-actions';
 import { getMethodologies } from '@/features/methodologies/actions/methodology-actions';
 import { ReportWithDetails } from '@/types/report';
@@ -30,7 +30,6 @@ export function ReportManagementView() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [editingReport, setEditingReport] = useState<ReportWithDetails | null>(null);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -94,29 +93,6 @@ export function ReportManagementView() {
     }
   };
 
-  const handleUpdateReport = async (data: ReportFormData) => {
-    if (!editingReport) return;
-    
-    setSubmitting(true);
-    try {
-      const result = await updateReport(editingReport.id, data as ReportUpdateData);
-      if (result.success && result.report) {
-        // Fetch the updated reports list
-        const reportsResult = await getReports();
-        if (reportsResult.success && reportsResult.reports) {
-          setReports(reportsResult.reports);
-        }
-        setEditingReport(null);
-        toast.success('Report updated successfully');
-      } else {
-        toast.error(result.error || 'Failed to update report');
-      }
-    } catch (error) {
-      toast.error('An unexpected error occurred');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleDeleteReport = async (reportId: string) => {
     try {
@@ -132,9 +108,6 @@ export function ReportManagementView() {
     }
   };
 
-  const handleEditReport = (report: ReportWithDetails) => {
-    setEditingReport(report);
-  };
 
 
   const canCreateReport = assets.length > 0 && methodologies.length > 0;
@@ -192,7 +165,7 @@ export function ReportManagementView() {
         <ReportTable
           data={reports}
           totalItems={reports.length}
-          columns={createReportColumns({ onEdit: handleEditReport, onDelete: handleDeleteReport })}
+          columns={createReportColumns({ onDelete: handleDeleteReport })}
         />
       </div>
 
@@ -212,22 +185,6 @@ export function ReportManagementView() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Report Dialog */}
-      <Dialog open={!!editingReport} onOpenChange={() => setEditingReport(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Report</DialogTitle>
-          </DialogHeader>
-          <ReportForm
-            initialData={editingReport}
-            pageTitle=""
-            onSubmit={handleUpdateReport}
-            loading={submitting}
-            assets={assets}
-            methodologies={methodologies}
-          />
-        </DialogContent>
-      </Dialog>
     </PageContainer>
   );
 }

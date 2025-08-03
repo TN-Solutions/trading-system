@@ -25,6 +25,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+const timeframeOptions = [
+  'M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1', 'MN1'
+];
+
 const reportFormSchema = z.object({
   title: z
     .string()
@@ -36,6 +40,9 @@ const reportFormSchema = z.object({
   methodology_id: z
     .string()
     .min(1, 'Methodology is required'),
+  main_timeframe: z
+    .string()
+    .min(1, 'Main timeframe is required'),
   status: z.enum(['draft', 'published'])
 });
 
@@ -62,6 +69,7 @@ export function ReportForm({
     title: initialData?.title || '',
     asset_id: initialData?.asset_id || '',
     methodology_id: initialData?.methodology_id || '',
+    main_timeframe: initialData?.main_timeframe || 'H4',
     status: initialData?.status || 'draft'
   };
 
@@ -109,7 +117,7 @@ export function ReportForm({
               )}
             />
             
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               <FormField
                 control={form.control}
                 name='asset_id'
@@ -163,6 +171,31 @@ export function ReportForm({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name='main_timeframe'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Main Timeframe</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loading}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select main timeframe" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {timeframeOptions.map((timeframe) => (
+                        <SelectItem key={timeframe} value={timeframe}>
+                          {timeframe}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

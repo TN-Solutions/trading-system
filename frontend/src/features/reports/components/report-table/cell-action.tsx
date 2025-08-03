@@ -11,18 +11,18 @@ import {
 import { ReportWithDetails } from '@/types/report';
 import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CellActionProps {
   data: ReportWithDetails;
-  onEdit?: (report: ReportWithDetails) => void;
   onDelete?: (reportId: string) => void;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ 
   data, 
-  onEdit, 
   onDelete 
 }) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -48,17 +48,18 @@ export const CellAction: React.FC<CellActionProps> = ({
         onConfirm={onConfirm}
         loading={loading}
       />
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button variant='ghost' className='h-8 w-8 p-0'>
-            <span className='sr-only'>Open menu</span>
-            <IconDotsVertical className='h-4 w-4' />
-          </Button>
-        </DropdownMenuTrigger>
+      <div onClick={(e) => e.stopPropagation()}>
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant='ghost' className='h-8 w-8 p-0'>
+              <span className='sr-only'>Open menu</span>
+              <IconDotsVertical className='h-4 w-4' />
+            </Button>
+          </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem
-            onClick={() => onEdit?.(data)}
+            onClick={() => router.push(`/dashboard/reports/${data.id}`)}
           >
             <IconEdit className='mr-2 h-4 w-4' /> Edit
           </DropdownMenuItem>
@@ -66,7 +67,8 @@ export const CellAction: React.FC<CellActionProps> = ({
             <IconTrash className='mr-2 h-4 w-4' /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+        </DropdownMenu>
+      </div>
     </>
   );
 };
