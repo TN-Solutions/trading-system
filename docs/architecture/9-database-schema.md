@@ -81,6 +81,33 @@ CREATE TABLE public.trade_entries (
 );
 -- Enable Row Level Security
 ALTER TABLE public.trade_entries ENABLE ROW LEVEL SECURITY;
+
+-- Table to store OHLC market data from MT5
+CREATE TABLE public.market_data_candles (
+    id BIGSERIAL PRIMARY KEY,
+    symbol TEXT NOT NULL,
+    timeframe TEXT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL,
+    open NUMERIC NOT NULL,
+    high NUMERIC NOT NULL,
+    low NUMERIC NOT NULL,
+    close NUMERIC NOT NULL,
+    volume BIGINT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(symbol, timeframe, timestamp)
+);
+-- Enable Row Level Security
+ALTER TABLE public.market_data_candles ENABLE ROW LEVEL SECURITY;
+-- RLS Policies for market_data_candles
+-- 1. Allow public, authenticated read access.
+CREATE POLICY "Allow read access to authenticated users" ON public.market_data_candles
+  FOR SELECT
+  USING (auth.role() = 'authenticated');
+-- 2. Allow the service_role (used by FastAPI) to insert data.
+CREATE POLICY "Allow insert access for service_role" ON public.market_data_candles
+  FOR INSERT
+  WITH CHECK (auth.role() = 'service_role');
 ```
 
 ---
+

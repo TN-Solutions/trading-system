@@ -30,6 +30,10 @@ A **monorepo** structure managed by **pnpm workspaces** will be used. This appro
 
 ```mermaid
 graph TD
+    subgraph "Data Ingestion"
+        MT5[MetaTrader 5 EA] -- REST API --> FastAPI
+    end
+
     subgraph "User"
         U[Trader]
     end
@@ -39,15 +43,15 @@ graph TD
         FE -- Server-Side --> VercelFunc(Vercel Functions)
     end
 
+    subgraph "Internal Services"
+        VercelFunc -- REST API --> FastAPI(FastAPI Market Data Service)
+        FastAPI -- Direct Connection --> DB
+    end
+
     subgraph "Supabase Platform"
         VercelFunc -- Supabase Client --> Auth(Supabase Auth)
         VercelFunc -- Supabase Client --> DB(PostgreSQL Database w/ RLS)
         VercelFunc -- Supabase Client --> Store(Supabase Storage)
-    end
-    
-    subgraph "Internal Services"
-        VercelFunc -- REST API --> FastAPI(FastAPI Market Data Service)
-        FastAPI -- Direct Connection --> DB
     end
 
     FE -- Client-Side --> Auth
@@ -57,11 +61,13 @@ graph TD
 
 *   **Jamstack:** Utilizes pre-rendered pages and reusable APIs to deliver higher performance and security.
     *   *Rationale:* Leverages the full strengths of Next.js and Vercel.
-*   **Backend as a Service (BaaS):** Leverages Supabase to quickly implement complex backend functionalities.
+*   **Backend as a Service (BaaS):** Leverages Supabase to quickly implement complex backend functionalities for user data and authentication.
     *   *Rationale:* Significantly reduces development time for the MVP.
+*   **Microservice:** A dedicated FastAPI service handles the specific concern of market data ingestion and retrieval.
+    *   *Rationale:* Decouples the core application from the data source, allowing for independent scaling and development.
 *   **Component-Based UI:** Builds the UI from reusable React components with TypeScript.
     *   *Rationale:* Already established by the Shadcn-ui foundation, ensuring consistency and maintainability.
-*   **API Layer Abstraction:** Creates a service layer within the Next.js app to abstract calls to Supabase.
-    *   *Rationale:* Facilitates easier migration to future FastAPI services without rewriting logic in multiple places.
+*   **API Layer Abstraction:** Creates a service layer within the Next.js app to abstract calls to Supabase and the FastAPI service.
+    *   *Rationale:* Facilitates easier maintenance and testing without rewriting logic in multiple places.
 
 ---

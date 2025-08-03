@@ -22,18 +22,21 @@
     *   **As a** trader, **I want** an interactive chart with drawing tools, **so that** I can perform technical analysis.
     *   **Acceptance Criteria:** Chart library is integrated, displays candle data, has Trendline/Rectangle drawing tools, drawn objects are saved.
 
-## Epic 2.5: Build and Integrate Market Data API
-*   **Goal:** Build, test, and deploy an internal FastAPI service to provide candlestick data for the chart components, including the data ingestion process.
-*   **Story 2.5.1: Create Market Data Ingestion Script**
-    *   **As a** developer, **I want** a script that can fetch historical candlestick data from a public API (e.g., Finnhub.io) and save it to a `market_data` table in the PostgreSQL database, **so that** the system has a data source for analysis.
-    *   **Acceptance Criteria:** A new `market_data` table is created in the DB. The script can be run manually, taking a symbol and time range as parameters. Data is stored successfully. API key is managed securely via environment variables.
-*   **Story 2.5.2: Design and Initialize FastAPI Service**
-    *   **As a** developer, **I want** to set up a new FastAPI application in the `backend/` directory with basic endpoints, **so that** a foundation for the market data service is created.
-    *   **Acceptance Criteria:** `backend/` directory is created, FastAPI is installed, has a working `/health` endpoint, Docker configuration for local running.
-*   **Story 2.5.3: Build Candlestick Data Endpoint**
+## Epic 2.5: Build Custom Market Data System via MT5
+*   **Goal:** Build, test, and deploy an internal FastAPI service to provide and ingest candlestick data from a custom MetaTrader 5 (MT5) Expert Advisor (EA).
+*   **Story 2.5.1: Initialize FastAPI Service from Template**
+    *   **As a** developer, **I want** to set up a new FastAPI application using the existing template in the `backend/` directory, **so that** a foundation for the market data service is quickly created.
+    *   **Acceptance Criteria:** The template is used, `backend/` directory is configured, FastAPI is running, has a working `/health` endpoint, Docker configuration is functional for local development.
+*   **Story 2.5.2: Build Candlestick Data Ingestion Endpoint**
+    *   **As a** developer, **I want** to build a secure `POST /api/v1/candles` endpoint to receive and store OHLC data from an external MT5 EA, **so that** the system can be populated with custom market data.
+    *   **Acceptance Criteria:** The endpoint is created and secured. It correctly validates and parses incoming data. Data is successfully stored in the `market_data` table.
+*   **Story 2.5.3: Build Candlestick Data Query Endpoint**
     *   **As a** developer, **I want** to create a `GET /api/v1/candles` endpoint that accepts `symbol`, `resolution`, `from`, `to` parameters, **so that** it can query and return candlestick data from the `market_data` table.
     *   **Acceptance Criteria:** The endpoint works, returns data in the format required by the charting library, has error handling for when data is not found.
-*   **Story 2.5.4: Deploy and Secure API Service**
+*   **Story 2.5.4: Develop MT5 Expert Advisor for Data Export**
+    *   **As a** developer, **I want** to create an Expert Advisor for MT5 that reads chart data (OHLC) and sends it to the FastAPI ingestion endpoint, **so that** real-time and historical data can be fed into the system.
+    *   **Acceptance Criteria:** The EA is written in MQL5. It can be attached to a chart in MT5. It successfully sends data to the `POST /api/v1/candles` endpoint. API credentials are managed securely.
+*   **Story 2.5.5: Deploy and Secure API Service**
     *   **As a** developer, **I want** to deploy the FastAPI service to a serverless environment (e.g., Vercel Functions) and secure it, **so that** the frontend can call it safely.
     *   **Acceptance Criteria:** The service is deployed, has a public URL, is only accessible from the frontend application's domain, has a CI/CD pipeline for automatic deployment on changes.
 
