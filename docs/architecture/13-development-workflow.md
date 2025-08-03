@@ -64,3 +64,15 @@ The project will follow a simple Git Flow process:
 5.  **Merge:** Once approved and all CI/CD checks have passed, the PR will be merged into `main`.
 
 ---
+
+## 13.3. AI Agent Tooling (MCPs)
+
+To enhance development with AI agents, the following Model Control Programs (MCPs) can be used. These provide agents with tools to interact with the development environment and external services. Run these commands in separate terminals to activate the tools for the agent.
+
+| Tool | Description | Command | Status |
+| :--- | :--- | :--- | :--- |
+| **Context7** | Provides the agent with up-to-date documentation and context about code libraries. | `npx -y @upstash/context7-mcp`
+| **Playwright** | Enables the agent to run End-to-End (E2E) tests to simulate and verify user workflows. | `npx @playwright/mcp@latest`
+| **Serena** | The core MCP for IDE-level code manipulation and project interaction. | `uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant`
+| **Supabase** | Allows the agent to interact with and manage the Supabase backend (database, auth, etc.). | `npx -y @supabase/mcp-server-supabase@latest`
+| **Browser Tools**| Gives the agent general capabilities to control and interact with a web browser. | `npx @agentdeskai/browser-tools-mcp@latest`

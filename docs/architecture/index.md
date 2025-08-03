@@ -47,6 +47,7 @@
         - [Initial Setup](./13-development-workflow.md#initial-setup)
         - [Development Commands](./13-development-workflow.md#development-commands)
     - [13.2. Git Workflow](./13-development-workflow.md#132-git-workflow)
+    - [13.3. AI Agent Tooling (MCPs)](./13-development-workflow.md#133-ai-agent-tooling-mcps)
   - [14. Deployment Architecture & CI/CD](./14-deployment-architecture-cicd.md)
     - [14.1. Deployment Architecture](./14-deployment-architecture-cicd.md#141-deployment-architecture)
     - [14.2. Environments](./14-deployment-architecture-cicd.md#142-environments)
