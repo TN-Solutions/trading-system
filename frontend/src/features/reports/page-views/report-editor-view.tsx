@@ -123,9 +123,9 @@ export function ReportEditorView({ reportId }: ReportEditorViewProps) {
   }
 
   return (
-    <div className="">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
+    <div className="h-full flex flex-col">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 flex items-center justify-between p-6 border-b bg-background">
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
@@ -144,8 +144,8 @@ export function ReportEditorView({ reportId }: ReportEditorViewProps) {
         </div>
       </div>
 
-      {/* Editor Content */}
-      <div className="p-6">
+      {/* Editor Content - This will scroll */}
+      <div className="flex-1 overflow-hidden">
         <ReportEditor
           report={report}
           assets={assets}

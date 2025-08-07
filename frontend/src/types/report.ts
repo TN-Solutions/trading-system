@@ -8,6 +8,7 @@ export type Report = {
   main_timeframe_bias: 'bullish' | 'bearish' | 'neutral';
   main_timeframe_notes?: string;
   status: 'draft' | 'published';
+  analysis_date: string; // The specific date/time the analysis refers to
   created_at: string;
   updated_at: string;
 };

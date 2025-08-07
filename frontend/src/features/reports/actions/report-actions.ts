@@ -9,6 +9,9 @@ export type ReportCreateData = {
   asset_id: string;
   methodology_id: string;
   main_timeframe: string;
+  main_timeframe_bias?: 'bullish' | 'bearish' | 'neutral';
+  main_timeframe_notes?: string;
+  analysis_date?: string;
   status: 'draft' | 'published';
 };
 
@@ -67,8 +70,9 @@ export async function createReport(data: ReportCreateData): Promise<{ success: b
         asset_id: data.asset_id,
         methodology_id: data.methodology_id,
         main_timeframe: data.main_timeframe,
-        main_timeframe_bias: 'neutral',
-        main_timeframe_notes: '',
+        main_timeframe_bias: data.main_timeframe_bias || 'neutral',
+        main_timeframe_notes: data.main_timeframe_notes || '',
+        analysis_date: data.analysis_date,
         status: data.status
       }])
       .select()
@@ -240,6 +244,9 @@ export async function updateReport(id: string, data: ReportUpdateData): Promise<
         asset_id: data.asset_id,
         methodology_id: data.methodology_id,
         main_timeframe: data.main_timeframe,
+        main_timeframe_bias: data.main_timeframe_bias,
+        main_timeframe_notes: data.main_timeframe_notes,
+        analysis_date: data.analysis_date,
         status: data.status
       })
       .eq('id', id)

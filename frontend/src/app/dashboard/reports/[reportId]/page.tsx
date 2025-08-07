@@ -12,7 +12,7 @@ export default async function ReportEditorPage({ params }: ReportEditorPageProps
   const { reportId } = await params;
   
   return (
-    <div className="">
+    <div className="h-full flex flex-col overflow-hidden">
       <Suspense fallback={<ReportEditorSkeleton />}>
         <ReportEditorView reportId={reportId} />
       </Suspense>

@@ -43,6 +43,9 @@ const reportFormSchema = z.object({
   main_timeframe: z
     .string()
     .min(1, 'Main timeframe is required'),
+  analysis_date: z
+    .string()
+    .min(1, 'Analysis date is required'),
   status: z.enum(['draft', 'published'])
 });
 
@@ -70,6 +73,7 @@ export function ReportForm({
     asset_id: initialData?.asset_id || '',
     methodology_id: initialData?.methodology_id || '',
     main_timeframe: initialData?.main_timeframe || 'H4',
+    analysis_date: initialData?.analysis_date ? new Date(initialData.analysis_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
     status: initialData?.status || 'draft'
   };
 
@@ -108,6 +112,24 @@ export function ReportForm({
                   <FormControl>
                     <Input 
                       placeholder='e.g., Q4 2024 EUR/USD Analysis' 
+                      {...field}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='analysis_date'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Analysis Date & Time</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="datetime-local"
                       {...field}
                       disabled={loading}
                     />

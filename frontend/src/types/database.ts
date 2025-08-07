@@ -67,6 +67,7 @@ export type Database = {
       }
       reports: {
         Row: {
+          analysis_date: string
           asset_id: string
           created_at: string
           id: string
@@ -77,6 +78,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analysis_date?: string
           asset_id: string
           created_at?: string
           id?: string
@@ -87,6 +89,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analysis_date?: string
           asset_id?: string
           created_at?: string
           id?: string
