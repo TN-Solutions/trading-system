@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { TradingChart } from '@/components/charts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -299,15 +300,14 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
               </div>
             </div>
 
-            {/* Chart Placeholder - Full Width */}
+            {/* Chart Analysis - Full Width */}
             <div className="space-y-2">
               <Label>Chart Analysis</Label>
-              <div className="w-full h-64 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center bg-muted/50">
-                <div className="text-center space-y-2">
-                  <div className="text-muted-foreground">Chart visualization will be added here</div>
-                  <div className="text-sm text-muted-foreground">Future integration: TradingView chart or custom chart component</div>
-                </div>
-              </div>
+              <TradingChart 
+                height={300}
+                symbol={assets.find(a => a.id === reportData.asset_id)?.symbol || 'SYMBOL'}
+                className="w-full"
+              />
             </div>
 
             {/* Notes - Full Width */}
