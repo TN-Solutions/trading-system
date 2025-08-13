@@ -220,21 +220,31 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
 
               <div className="space-y-2">
                 <Label htmlFor="main_timeframe" className="text-sm font-medium text-gray-600">Main Timeframe</Label>
-                <Select
-                  value={reportData.main_timeframe}
-                  onValueChange={(value) => setReportData(prev => ({ ...prev, main_timeframe: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select main timeframe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeframeOptions.map((tf) => (
-                      <SelectItem key={tf} value={tf}>
-                        {tf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* Disable main timeframe selection if report has analysis blocks or is published */}
+                {report.analysis_blocks.length > 0 || report.status === 'published' ? (
+                  <div className="px-3 py-2 bg-muted/50 rounded-md text-sm font-medium border border-border">
+                    {reportData.main_timeframe}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      (Cannot change after analysis blocks are added or report is published)
+                    </span>
+                  </div>
+                ) : (
+                  <Select
+                    value={reportData.main_timeframe}
+                    onValueChange={(value) => setReportData(prev => ({ ...prev, main_timeframe: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select main timeframe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeframeOptions.map((tf) => (
+                        <SelectItem key={tf} value={tf}>
+                          {tf}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">

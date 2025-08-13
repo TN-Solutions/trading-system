@@ -207,6 +207,42 @@ export async function updateReport(id: string, data: ReportUpdateData): Promise<
       };
     }
 
+    // Get the existing report to check current state
+    const { data: existingReport, error: getReportError } = await supabase
+      .from('reports')
+      .select(`
+        id, 
+        main_timeframe, 
+        status,
+        analysis_blocks:analysis_blocks(id)
+      `)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (getReportError || !existingReport) {
+      return {
+        success: false,
+        error: 'Report not found or you do not have permission to access it'
+      };
+    }
+
+    // Check if main_timeframe is being changed
+    const isMainTimeframeChanging = data.main_timeframe && data.main_timeframe !== existingReport.main_timeframe;
+    
+    if (isMainTimeframeChanging) {
+      // Prevent main_timeframe update if report has analysis blocks or is published
+      const hasAnalysisBlocks = existingReport.analysis_blocks && existingReport.analysis_blocks.length > 0;
+      const isPublished = existingReport.status === 'published';
+      
+      if (hasAnalysisBlocks || isPublished) {
+        return {
+          success: false,
+          error: 'Cannot change main timeframe after analysis blocks have been added or report is published'
+        };
+      }
+    }
+
     // Verify asset exists and belongs to user
     const { data: asset, error: assetError } = await supabase
       .from('assets')
@@ -237,18 +273,25 @@ export async function updateReport(id: string, data: ReportUpdateData): Promise<
       };
     }
 
+    // Prepare update data, excluding main_timeframe if it shouldn't be updated
+    const updateData: any = {
+      title: data.title,
+      asset_id: data.asset_id,
+      methodology_id: data.methodology_id,
+      main_timeframe_bias: data.main_timeframe_bias,
+      main_timeframe_notes: data.main_timeframe_notes,
+      analysis_date: data.analysis_date,
+      status: data.status
+    };
+
+    // Only include main_timeframe if it's allowed to be updated
+    if (!isMainTimeframeChanging || (!existingReport.analysis_blocks?.length && existingReport.status === 'draft')) {
+      updateData.main_timeframe = data.main_timeframe;
+    }
+
     const { data: report, error } = await supabase
       .from('reports')
-      .update({
-        title: data.title,
-        asset_id: data.asset_id,
-        methodology_id: data.methodology_id,
-        main_timeframe: data.main_timeframe,
-        main_timeframe_bias: data.main_timeframe_bias,
-        main_timeframe_notes: data.main_timeframe_notes,
-        analysis_date: data.analysis_date,
-        status: data.status
-      })
+      .update(updateData)
       .eq('id', id)
       .eq('user_id', user.id)
       .select()
