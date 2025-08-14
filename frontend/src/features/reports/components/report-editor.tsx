@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { TradingChart } from '@/components/charts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Save } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus, Save, Trash2 } from 'lucide-react';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { toast } from 'sonner';
 import { ReportWithBlocks, AnalysisBlock, Asset, Methodology } from '@/types';
 import { AnalysisBlockComponent } from './analysis-block';
-import { updateReport } from '@/features/reports/actions/report-actions';
+import { updateReport, deleteReport } from '@/features/reports/actions/report-actions';
 import { createAnalysisBlock } from '@/features/reports/actions/analysis-block-actions';
 
 interface ReportEditorProps {
@@ -19,6 +21,7 @@ interface ReportEditorProps {
   assets: Asset[];
   methodologies: Methodology[];
   onReportUpdated: (updatedReport: ReportWithBlocks) => void;
+  onReportDeleted?: () => void;
 }
 
 const timeframeOptions = [
@@ -31,16 +34,18 @@ const biasOptions = [
   { value: 'neutral', label: 'Neutral' },
 ] as const;
 
-export function ReportEditor({ report, assets, methodologies, onReportUpdated }: ReportEditorProps) {
+export function ReportEditor({ report, assets, methodologies, onReportUpdated, onReportDeleted }: ReportEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isAddingBlock, setIsAddingBlock] = useState(false);
-  const [reportData, setReportData] = useState({
+  
+  const [initialReportData, setInitialReportData] = useState({
     title: report.title,
     asset_id: report.asset_id,
     methodology_id: report.methodology_id,
     main_timeframe: report.main_timeframe,
     main_timeframe_bias: report.main_timeframe_bias,
     main_timeframe_notes: report.main_timeframe_notes || '',
+    main_timeframe_image_url: report.main_timeframe_image_url || null,
     analysis_date: (() => {
       if (report.analysis_date) {
         const date = new Date(report.analysis_date);
@@ -51,6 +56,20 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
     })(),
     status: report.status,
   });
+  
+  const [reportData, setReportData] = useState(initialReportData);
+  
+  // Check if there are changes in Report Information editable fields (title, status)
+  const hasReportInfoChanges = reportData.title !== initialReportData.title ||
+                               reportData.status !== initialReportData.status;
+  
+  // Check if there are changes in Main Timeframe Analysis editable fields (bias, notes, image)
+  const hasAnalysisChanges = reportData.main_timeframe_bias !== initialReportData.main_timeframe_bias ||
+                             reportData.main_timeframe_notes !== initialReportData.main_timeframe_notes ||
+                             reportData.main_timeframe_image_url !== initialReportData.main_timeframe_image_url;
+  
+  // Overall changes check for any editable field
+  const hasChanges = hasReportInfoChanges || hasAnalysisChanges;
   
   const [newBlockData, setNewBlockData] = useState({
     timeframe: 'H4',
@@ -73,6 +92,10 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
           analysis_blocks: report.analysis_blocks,
         };
         onReportUpdated(updatedReport);
+        
+        // Update initial data to reflect the saved state
+        setInitialReportData(reportData);
+        
         toast.success('Report updated successfully');
       } else {
         toast.error(result.error || 'Failed to update report');
@@ -139,6 +162,25 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
     onReportUpdated(updatedReport);
   }, [report, onReportUpdated]);
 
+  const handleDeleteReport = async () => {
+    setIsSaving(true);
+    try {
+      const result = await deleteReport(report.id);
+      
+      if (result.success) {
+        toast.success('Report deleted successfully');
+        onReportDeleted?.();
+      } else {
+        toast.error(result.error || 'Failed to delete report');
+      }
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      toast.error('Failed to delete report');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="px-6 py-6 space-y-6">
@@ -146,10 +188,34 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
         <Card>
           <CardHeader className="pb-4 flex flex-row items-center justify-between">
             <CardTitle>Report Information</CardTitle>
-            <Button onClick={handleSaveReport} disabled={isSaving} size="sm">
-              <Save className="h-4 w-4 mr-2" />
-              Save Report
-            </Button>
+            <div className="flex items-center space-x-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={isSaving} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Report
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Report</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this report? This action cannot be undone and will permanently remove the report and all its analysis blocks.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteReport} disabled={isSaving}>
+                      {isSaving ? 'Deleting...' : 'Delete Report'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button onClick={handleSaveReport} disabled={isSaving || !hasReportInfoChanges} size="sm">
+                <Save className="h-4 w-4 mr-2" />
+                Save Report
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Title and Date Row */}
@@ -166,13 +232,9 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
               </div>
               <div className="space-y-2">
                 <Label htmlFor="analysis_date" className="text-sm font-semibold text-gray-700">Analysis Date & Time</Label>
-                <Input
-                  id="analysis_date"
-                  type="datetime-local"
-                  value={reportData.analysis_date}
-                  onChange={(e) => setReportData(prev => ({ ...prev, analysis_date: e.target.value }))}
-                  className="text-sm"
-                />
+                <div className="px-3 py-2 bg-muted/50 rounded-md text-sm font-medium border border-border">
+                  {new Date(reportData.analysis_date).toLocaleString()}
+                </div>
               </div>
             </div>
 
@@ -182,69 +244,23 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="asset" className="text-sm font-medium text-gray-600">Asset</Label>
-                <Select
-                  value={reportData.asset_id}
-                  onValueChange={(value) => setReportData(prev => ({ ...prev, asset_id: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select asset" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {assets.map((asset) => (
-                      <SelectItem key={asset.id} value={asset.id}>
-                        {asset.symbol} - {asset.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="px-3 py-2 bg-muted/50 rounded-md text-sm font-medium border border-border">
+                    {assets.find(a => a.id === reportData.asset_id)?.symbol} - {assets.find(a => a.id === reportData.asset_id)?.name}
+                  </div>
+                </div>
 
               <div className="space-y-2">
                 <Label htmlFor="methodology" className="text-sm font-medium text-gray-600">Methodology</Label>
-                <Select
-                  value={reportData.methodology_id}
-                  onValueChange={(value) => setReportData(prev => ({ ...prev, methodology_id: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select methodology" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {methodologies.map((methodology) => (
-                      <SelectItem key={methodology.id} value={methodology.id}>
-                        {methodology.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="px-3 py-2 bg-muted/50 rounded-md text-sm font-medium border border-border">
+                  {methodologies.find(m => m.id === reportData.methodology_id)?.name}
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="main_timeframe" className="text-sm font-medium text-gray-600">Main Timeframe</Label>
-                {/* Disable main timeframe selection if report has analysis blocks or is published */}
-                {report.analysis_blocks.length > 0 || report.status === 'published' ? (
-                  <div className="px-3 py-2 bg-muted/50 rounded-md text-sm font-medium border border-border">
-                    {reportData.main_timeframe}
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      (Cannot change after analysis blocks are added or report is published)
-                    </span>
-                  </div>
-                ) : (
-                  <Select
-                    value={reportData.main_timeframe}
-                    onValueChange={(value) => setReportData(prev => ({ ...prev, main_timeframe: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select main timeframe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeframeOptions.map((tf) => (
-                        <SelectItem key={tf} value={tf}>
-                          {tf}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <div className="px-3 py-2 bg-muted/50 rounded-md text-sm font-medium border border-border">
+                  {reportData.main_timeframe}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -273,7 +289,7 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
         <Card>
           <CardHeader className="pb-4 flex flex-row items-center justify-between">
             <CardTitle>Main Timeframe Analysis</CardTitle>
-            <Button onClick={handleSaveReport} disabled={isSaving} size="sm">
+            <Button onClick={handleSaveReport} disabled={isSaving || !hasAnalysisChanges} size="sm">
               <Save className="h-4 w-4 mr-2" />
               Save Analysis
             </Button>
@@ -320,17 +336,36 @@ export function ReportEditor({ report, assets, methodologies, onReportUpdated }:
               />
             </div>
 
-            {/* Notes - Full Width */}
-            <div className="space-y-2">
-              <Label htmlFor="main_timeframe_notes">Analysis Notes</Label>
-              <textarea
-                id="main_timeframe_notes"
-                value={reportData.main_timeframe_notes}
-                onChange={(e) => setReportData(prev => ({ ...prev, main_timeframe_notes: e.target.value }))}
-                placeholder="Enter your main timeframe analysis notes here..."
-                className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y"
-                rows={4}
-              />
+            {/* Chart Screenshot and Analysis Notes - Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Chart Screenshot - Left Side */}
+              <div className="space-y-2">
+                <Label className="mb-2">Chart Screenshot (Optional)</Label>
+                <ImageUpload
+                  value={reportData.main_timeframe_image_url}
+                  onChange={(url) => setReportData(prev => ({ ...prev, main_timeframe_image_url: url }))}
+                  disabled={isSaving}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Upload a screenshot of your chart analysis for reference. Images will be compressed to optimize storage.
+                </p>
+              </div>
+
+              {/* Analysis Notes - Right Side */}
+              <div className="space-y-2">
+                <Label htmlFor="main_timeframe_notes">Analysis Notes</Label>
+                <textarea
+                  id="main_timeframe_notes"
+                  value={reportData.main_timeframe_notes}
+                  onChange={(e) => setReportData(prev => ({ ...prev, main_timeframe_notes: e.target.value }))}
+                  placeholder="Enter your main timeframe analysis notes here..."
+                  className="h-64 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Document your analysis, key observations, and trading insights.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

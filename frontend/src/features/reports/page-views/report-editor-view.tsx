@@ -2,12 +2,21 @@
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { getAssets } from '@/features/assets/actions/asset-actions';
 import { getMethodologies } from '@/features/methodologies/actions/methodology-actions';
 import { getReportWithBlocks } from '@/features/reports/actions/report-actions';
 import { ReportEditor } from '@/features/reports/components/report-editor';
 import { Asset, Methodology, ReportWithBlocks } from '@/types';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Home, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -69,6 +78,10 @@ export function ReportEditorView({ reportId }: ReportEditorViewProps) {
     setReport(updatedReport);
   };
 
+  const handleReportDeleted = () => {
+    router.push('/dashboard/reports');
+  };
+
   const handleBack = () => {
     router.push('/dashboard/reports');
   };
@@ -125,21 +138,49 @@ export function ReportEditorView({ reportId }: ReportEditorViewProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Fixed Header */}
-      <div className="flex-shrink-0 flex items-center justify-between p-6 border-b bg-background">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{report.title}</h1>
-            <p className="text-sm text-muted-foreground">
-              {report.asset.symbol} • {report.methodology.name} • {report.status}
-            </p>
+      <div className="flex-shrink-0 border-b bg-background">
+        <div className="px-6 py-4 space-y-4">
+
+
+          {/* Report Header */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3">
+                <h1 className="text-3xl font-bold tracking-tight">{report.title}</h1>
+                <Badge 
+                  variant={report.status === 'published' ? 'default' : report.status === 'draft' ? 'secondary' : 'outline'}
+                  className="text-xs"
+                >
+                  {report.status}
+                </Badge>
+              </div>
+              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                <div className="flex items-center space-x-1">
+                  <span className="font-medium">Asset:</span>
+                  <span>{report.asset.symbol}</span>
+                </div>
+                <div className="w-1 h-1 bg-muted-foreground rounded-full"></div>
+                <div className="flex items-center space-x-1">
+                  <span className="font-medium">Method:</span>
+                  <span>{report.methodology.name}</span>
+                </div>
+                <div className="w-1 h-1 bg-muted-foreground rounded-full"></div>
+                <div className="flex items-center space-x-1">
+                  <span className="font-medium">Timeframe:</span>
+                  <span>{report.main_timeframe}</span>
+                </div>
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Reports
+            </Button>
           </div>
         </div>
       </div>
@@ -151,6 +192,7 @@ export function ReportEditorView({ reportId }: ReportEditorViewProps) {
           assets={assets}
           methodologies={methodologies}
           onReportUpdated={handleReportUpdated}
+          onReportDeleted={handleReportDeleted}
         />
       </div>
     </div>
